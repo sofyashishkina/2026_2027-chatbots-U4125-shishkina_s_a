@@ -1,0 +1,14 @@
+2026-10-15 20:50:24,008 INFO you_art: Бот запущен, база пользователей: C:\Users\r0mberg\Documents\Dev\Sofa\vibe-coding-for-business\2026_2027-chatbots-U4125-shishkina_s_a\lab2\data\bot.db
+2026-10-15 20:50:24,061 INFO telegram.ext.Application: Application started
+2026-10-15 20:52:15,303 INFO you_art: Рассылка: всего=1, успешно=1, ошибки=0
+2026-10-15 20:53:19,553 WARNING you_art: Пропускаю недоступное изображение C:\Users\r0mberg\Documents\Dev\Sofa\vibe-coding-for-business\2026_2027-chatbots-U4125-shishkina_s_a\lab2\assets\catalog\Текстовый документ.jpg
+Traceback (most recent call last):
+  File "C:\Users\r0mberg\Documents\Dev\Sofa\vibe-coding-for-business\2026_2027-chatbots-U4125-shishkina_s_a\lab2\bot.py", line 412, in read_photo
+    with Image.open(BytesIO(data)) as image:
+         ~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\r0mberg\AppData\Roaming\Python\Python314\site-packages\PIL\Image.py", line 3715, in open
+    raise UnidentifiedImageError(msg)
+PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x0000025E75B9B290>
+2026-10-15 20:57:10,885 INFO telegram.ext.Application: Application is stopping. This might take a moment.
+2026-10-15 20:57:10,886 INFO telegram.ext.Application: Application.stop() complete
+2026-10-15 20:57:10,896 INFO you_art: Бот остановлен, база данных закрыта
