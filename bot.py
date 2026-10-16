@@ -66,10 +66,7 @@ TEXT = {
 
 В You Art более 20 творческих направлений.
 
-В карточках собрали основную информацию о каждом мастер-классе: результат, продолжительность, стоимость, возраст и особенности формата.
-
-Листайте каталог и выбирайте то, что хочется попробовать 🤍""",
-    "catalog_empty": "Каталог сейчас обновляется 🤍\nПопробуйте открыть его немного позже.",
+Выберите мастер-класс ниже — пришлём карточку с описанием, длительностью, стоимостью и возрастом 🤍""",
     "price": """💰 ПРАЙС YOU ART
 
 Здесь собрали актуальную стоимость наших мастер-классов 🤍
@@ -141,7 +138,45 @@ TEXT = {
 В нашей мастерской комфортно размещаются компании до 18 человек.
 
 Если участников больше, мы можем организовать выездной мастер-класс на другой площадке.""",
-    "certificates": """🎁 ПОДАРОЧНЫЕ СЕРТИФИКАТЫ YOU ART
+    "faq": """❓ ЧАСТЫЕ ВОПРОСЫ
+
+<b>Как записаться?</b>
+Напишите нам: {booking_link}
+Укажите мастер-класс, желаемую дату, время и количество участников.
+
+<b>Есть ли расписание?</b>
+Фиксированного расписания нет — вы выбираете удобную дату и время, а мы подтверждаем возможность проведения. Групповые мастер-классы с готовыми датами появляются в Афише.
+
+<b>Можно ли прийти одному?</b>
+Запись на мастер-классы — от 2 человек. Одному можно прийти на групповой мастер-класс из Афиши.
+
+<b>Сколько человек может быть в группе?</b>
+От 2 до 17 человек. Для больших компаний организуем выездной мастер-класс на другой площадке.
+
+<b>Нужна ли предоплата?</b>
+Да, для подтверждения бронирования необходима предоплата 50%.
+
+<b>Что входит в стоимость?</b>
+Все необходимые материалы, если в описании формата не указано иное. Стоимость указана за одного участника.
+
+<b>Сколько длится мастер-класс?</b>
+Обычно от 1,5 до 3 часов. Тафтинг и плетение сумок из бусин — 2 занятия по 4 часа.
+
+<b>С какого возраста можно?</b>
+Зависит от мастер-класса: от 5 до 16 лет. Возраст указан в карточке каждого мастер-класса в каталоге.
+
+<b>Можно ли прийти вдвоём?</b>
+Да, есть парный мастер-класс: +1500 ₽ к любому мастер-классу, только для 2 участников, с романтической атмосферой.
+
+<b>Можно ли отметить праздник?</b>
+Да: день рождения, девичник, семейный праздник или корпоратив. Подробнее — в разделе «Праздники в You Art».
+
+<b>Есть ли подарочные сертификаты?</b>
+Да, подробнее — в разделе «Подарочные сертификаты».
+
+<b>Где вы находитесь?</b>
+Санкт-Петербург, Суворовский проспект, 35, 2 этаж, офис 208.""",
+    "certificates":"""🎁 ПОДАРОЧНЫЕ СЕРТИФИКАТЫ YOU ART
 
 В You Art можно приобрести подарочный сертификат на творческий мастер-класс.
 
@@ -179,6 +214,13 @@ TEXT = {
     "broadcast_started": "Начинаю рассылку. После завершения пришлю результат.",
     "broadcast_result": "Рассылка завершена.\n\nВсего пользователей: {total}\nУспешно отправлено: {success}\nНе удалось отправить: {failed}",
     "id": "Ваш Telegram ID: <code>{telegram_id}</code>",
+    # Описание на пустом экране чата (до 512 символов) и «About» в профиле (до 120).
+    "description": """Творческая мастерская You Art в Санкт-Петербурге 🤍
+
+Здесь можно посмотреть каталог мастер-классов с ценами, прайс и афишу, узнать об условиях бронирования, праздниках и подарочных сертификатах, а также ответы на частые вопросы.
+
+Запустите бота, чтобы открыть меню 👇""",
+    "about": "Творческая мастерская You Art в Санкт-Петербурге: 20+ мастер-классов, праздники и подарочные сертификаты 🤍",
 }
 
 LABELS = {
@@ -189,9 +231,11 @@ LABELS = {
     "party": "🎂 Праздники в You Art",
     "signup": "✍️ Запись",
     "booking": "📌 Условия бронирования",
+    "faq": "❓ Частые вопросы",
     "certificates": "🎁 Подарочные сертификаты",
     "contacts": "📍 Контакты и как нас найти",
     "view_catalog": "🎨 Посмотреть мастер-классы",
+    "back_catalog": "⬅️ Назад к каталогу",
     "sign_up": "✍️ Записаться",
     "write_signup": "✍️ Написать для записи",
     "write": "✍️ Написать",
@@ -210,12 +254,83 @@ COMMANDS = [
     BotCommand("events", "Афиша"),
     BotCommand("party", "Праздники в You Art"),
     BotCommand("booking", "Условия бронирования"),
+    BotCommand("faq", "Частые вопросы"),
     BotCommand("signup", "Запись на мастер-класс"),
     BotCommand("certificates", "Подарочные сертификаты"),
     BotCommand("contacts", "Контакты и адрес"),
     BotCommand("id", "Мой Telegram ID"),
 ]
-SECTIONS = ("menu", "catalog", "price", "events", "party", "booking", "signup", "certificates", "contacts")
+SECTIONS = ("menu", "catalog", "price", "events", "party", "booking", "faq", "signup", "certificates", "contacts")
+
+
+@dataclass(frozen=True)
+class Workshop:
+    slug: str
+    label: str
+    title: str
+    photo: str
+    result: str
+    duration: str
+    prices: tuple[str, ...]
+    age: str = ""
+
+
+# Данные взяты с карточек assets/catalog и из прайс-листа; возраст — только из прайса.
+GROUP_SIZE = "от 2 до 17 человек"
+WORKSHOPS = (
+    Workshop("dessert", "🧁 Десертные свечи", "Десертные свечи", "1.jpg",
+             "Делаем свечу в стакане: крем, декор, аромат и полный эффект маленького десерта.",
+             "2 часа", ("2500 ₽",), "от 6 лет"),
+    Workshop("painting", "🖼 Живопись", "Живопись на холсте", "2.jpg",
+             "Пишем картину акрилом на холсте по выбранному референсу — мастер помогает с композицией, цветом и деталями.",
+             "2,5 часа", ("холст 20×30 — 2400 ₽", "холст 30×40 — 2600 ₽", "холст 40×50 — 2900 ₽"), "от 12 лет"),
+    Workshop("epoxy", "💎 Смола: 3 изделия", "Эпоксидная смола: 3 изделия", "3.jpg",
+             "Создаём 3 изделия на выбор: кулоны, серьги, кольца, броши, брелоки, подставки, закладки, гребешки или шармы.",
+             "2 часа", ("2700 ₽",), "от 10 лет"),
+    Workshop("phone_case", "📱 Смола: чехол", "Эпоксидная смола: чехол на телефон", "4.jpg",
+             "Декорируем чехол смолой, сухоцветами, блёстками и маленькими деталями под ваш стиль.",
+             "1,5 часа", ("2600 ₽",)),
+    Workshop("gypsum", "🏺 Гипсовые изделия", "Создание гипсовых изделий", "5.jpg",
+             "Заливаем гипсовые формы и создаём 2 изделия на выбор: подставку, кашпо, шкатулку, поднос, органайзер или вазу.",
+             "1,5 часа", ("2400 ₽",), "от 6 лет"),
+    Workshop("gypsum_painting", "🎨 Роспись гипса", "Роспись гипсовых изделий", "6.jpg",
+             "Расписываем гипсовое кашпо или подставку акрилом: выбираем палитру, рисунок и декоративные детали.",
+             "2 часа", ("2100 ₽",), "от 6 лет"),
+    Workshop("pillow", "🧶 Вязание подушки", "Вязание подушки", "7.jpg",
+             "Вяжем мягкую интерьерную подушку 40×40 см руками — без спиц и крючка.",
+             "2 часа", ("2100 ₽",), "от 12 лет"),
+    Workshop("candles", "🕯 Создание свечей", "Создание свечей", "8.jpg",
+             "Создаём 2 свечи: формовую свечу и контейнерную в гипсовом кашпо, которое тоже создаём на мастер-классе.",
+             "2 часа", ("2700 ₽",), "от 6 лет"),
+    Workshop("soap", "🧼 Мыловарение", "Мыловарение", "9.jpg",
+             "Создаём 2 формовых мыла: выбираем форму, цвет, аромат и декоративные детали.",
+             "2 часа", ("2400 ₽",), "от 5 лет"),
+    Workshop("texture", "🖌 Фактурная картина", "Фактурная картина", "10.jpg",
+             "Создаём объёмную интерьерную картину на холсте: работаем с пастой, мастихинами, фактурой и цветом.",
+             "2,5 часа", ("2900 ₽",), "от 12 лет"),
+    Workshop("custom", "👕 Кастом одежды", "Кастом шоппера, футболки или кепки", "11.jpg",
+             "Создаём свой дизайн на ткани: выбираем референс, переносим рисунок и расписываем изделие.",
+             "2,5 часа", ("шоппер — 2400 ₽", "футболка — 3300 ₽", "кепка — 2900 ₽"), "от 6 лет"),
+    Workshop("clay", "🍄 Полимерная глина", "Полимерная глина", "12.jpg",
+             "Лепим 2 изделия из полимерной глины: кольцо, брелок, кулон, серьги или маленькую фигурку.",
+             "2 часа", ("1900 ₽",), "от 6 лет"),
+    Workshop("watercolor", "💧 Акварельный этюд", "Акварельный этюд", "13.jpg",
+             "Создаём 2 лёгкие акварельные работы: мягкие переходы, нежные оттенки и аккуратные детали.",
+             "2 часа", ("2100 ₽",), "от 6 лет"),
+    Workshop("wreath", "🎄 Новогодний венок", "Новогодний венок", "14.jpg",
+             "Создаём декоративный венок для дома: собираем основу, добавляем хвойные элементы, ленты, шишки, ягоды и праздничный декор.",
+             "2 часа", ("2300 ₽",), "от 6 лет"),
+    Workshop("tiffany", "🔷 Тиффани", "Витражное украшение в технике «Тиффани»", "15.jpg",
+             "Создаём кулон или брелок из стекла в технике Тиффани: форма согласуется заранее.",
+             "3 часа", ("3300 ₽",), "от 16 лет"),
+    Workshop("tufting", "🧵 Тафтинг", "Тафтинг", "16.jpg",
+             "Создаём мини-коврик 20×20 см вручную: выбираем рисунок, цвета и работаем с мягкой фактурой.",
+             "2 занятия по 4 часа", ("5000 ₽",), "от 12 лет"),
+    Workshop("beads", "👜 Сумка из бусин", "Плетение сумок из бусин", "17.jpg",
+             "Плетём сумку из бусин по выбранной форме и цветовой гамме — стильный аксессуар своими руками.",
+             "2 занятия по 4 часа", ("6500 ₽",), "от 12 лет"),
+)
+WORKSHOPS_BY_SLUG = {workshop.slug: workshop for workshop in WORKSHOPS}
 
 
 @dataclass(frozen=True)
@@ -351,13 +466,22 @@ def section_button(section: str, label: str | None = None) -> InlineKeyboardButt
 def keyboard(settings: Settings, section: str = "menu") -> InlineKeyboardMarkup:
     if section == "menu":
         return InlineKeyboardMarkup([[section_button(name)] for name in (
-            "catalog", "price", "events", "party", "signup", "booking", "certificates", "contacts"
+            "catalog", "price", "events", "party", "signup", "booking", "faq", "certificates", "contacts"
         )])
     rows = []
-    if section == "price":
+    if section == "catalog":
+        # Короткие подписи помещаются по две в ряд даже на узком экране.
+        buttons = [InlineKeyboardButton(workshop.label, callback_data=f"workshop:{workshop.slug}")
+                   for workshop in WORKSHOPS]
+        rows = [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
+    elif section == "price":
         rows = [[section_button("signup")], [section_button("catalog")]]
-    elif section in ("events", "booking"):
+    elif section == "events":
         rows = [[section_button("signup")]]
+    elif section == "booking":
+        rows = [[section_button("signup")], [section_button("faq")]]
+    elif section == "faq":
+        rows = [[InlineKeyboardButton(LABELS["sign_up"], url=settings.booking_url)], [section_button("catalog")]]
     elif section == "party":
         rows = [[section_button("catalog", LABELS["view_catalog"])],
                 [section_button("signup", LABELS["sign_up"])], [section_button("booking")]]
@@ -374,6 +498,27 @@ def keyboard(settings: Settings, section: str = "menu") -> InlineKeyboardMarkup:
                 rows.append([InlineKeyboardButton(LABELS[label], url=url)])
     rows.append([section_button("menu")])
     return InlineKeyboardMarkup(rows)
+
+
+def workshop_keyboard(settings: Settings) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(LABELS["sign_up"], url=settings.booking_url)],
+        [section_button("catalog", LABELS["back_catalog"])],
+    ])
+
+
+def workshop_caption(workshop: Workshop) -> str:
+    if len(workshop.prices) == 1:
+        price = f"💰 Стоимость: {escape(workshop.prices[0])} за участника"
+    else:
+        price = "💰 Стоимость за участника:\n" + "\n".join(f"• {escape(item)}" for item in workshop.prices)
+    lines = [
+        f"🎨 <b>{escape(workshop.title)}</b>", "", escape(workshop.result), "",
+        f"⏱ Длительность: {escape(workshop.duration)}", price, f"👥 Группа: {GROUP_SIZE}",
+    ]
+    if workshop.age:
+        lines.append(f"🎂 Возраст: {escape(workshop.age)}")
+    return "\n".join(lines)
 
 
 async def call_with_retry(operation: Callable[[], Awaitable[T]]) -> T:
@@ -465,15 +610,18 @@ async def show_section(update: Update, context: ContextTypes.DEFAULT_TYPE, secti
     settings = context.bot_data["settings"]
     if section == "menu":
         await send_text(context, chat_id, TEXT["menu"], "menu")
-    elif section in ("catalog", "events"):
-        await send_text(context, chat_id, TEXT[section])
-        paths = load_images(ASSETS_DIR / section)
+    elif section == "catalog":
+        # Только список названий: карточка приходит после выбора мастер-класса.
+        await send_text(context, chat_id, TEXT["catalog"], "catalog")
+    elif section == "events":
+        await send_text(context, chat_id, TEXT["events"])
+        paths = load_images(ASSETS_DIR / "events")
         sent = await send_images(context.bot, chat_id, paths)
         if not sent:
-            await send_text(context, chat_id, TEXT[f"{section}_empty"], section)
+            await send_text(context, chat_id, TEXT["events_empty"], "events")
         else:
             text = TEXT["partial_media"] if sent < len(paths) else TEXT["menu"]
-            await send_text(context, chat_id, text, section)
+            await send_text(context, chat_id, text, "events")
     elif section == "price":
         await send_text(context, chat_id, TEXT["price"])
         # Прайс показываем целиком: обе готовые карточки одним альбомом.
@@ -524,6 +672,35 @@ async def section_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await send_text(context, update.effective_chat.id, TEXT["error"], "menu")
         return
     await show_section(update, context, section)
+
+
+async def show_workshop(update: Update, context: ContextTypes.DEFAULT_TYPE, slug: str) -> None:
+    chat_id = update.effective_chat.id
+    workshop = WORKSHOPS_BY_SLUG.get(slug)
+    if workshop is None:
+        # Например, кнопка из старого сообщения после обновления каталога.
+        await send_text(context, chat_id, TEXT["error"], "menu")
+        return
+    caption = workshop_caption(workshop)
+    markup = workshop_keyboard(context.bot_data["settings"])
+    photo = await asyncio.to_thread(read_photo, ASSETS_DIR / "catalog" / workshop.photo)
+    if photo is not None:
+        try:
+            await call_with_retry(lambda: context.bot.send_photo(
+                chat_id=chat_id, photo=photo, caption=caption, reply_markup=markup))
+            return
+        except BadRequest:
+            LOGGER.warning("Telegram отклонил фотографию мастер-класса %s", slug, exc_info=True)
+    # Без фотографии карточка остаётся полезной: те же данные и кнопки текстом.
+    await call_with_retry(lambda: context.bot.send_message(chat_id=chat_id, text=caption, reply_markup=markup))
+
+
+async def workshop_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    if update.effective_chat.type != ChatType.PRIVATE:
+        return
+    await show_workshop(update, context, query.data.partition(":")[2])
 
 
 async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -709,6 +886,12 @@ async def post_init(application: Application) -> None:
     except TelegramError:
         # Администратор мог ещё не открыть личный чат: работа остальных разделов доступна.
         LOGGER.warning("Не удалось настроить список команд Telegram", exc_info=True)
+    try:
+        # То же, что /setdescription и /setabouttext в BotFather, но тексты хранятся в коде.
+        await application.bot.set_my_description(TEXT["description"])
+        await application.bot.set_my_short_description(TEXT["about"])
+    except TelegramError:
+        LOGGER.warning("Не удалось обновить описание бота", exc_info=True)
     LOGGER.info("Бот запущен, база пользователей: %s", DB_PATH)
 
 
@@ -732,6 +915,7 @@ def build_application(settings: Settings, store: UserStore) -> Application:
     application.add_handler(CommandHandler("cancel", cancel_command))
     application.add_handler(CallbackQueryHandler(broadcast_callback, pattern=r"^broadcast:"))
     application.add_handler(CallbackQueryHandler(section_callback, pattern=r"^section:"))
+    application.add_handler(CallbackQueryHandler(workshop_callback, pattern=r"^workshop:"))
     application.add_handler(ChatMemberHandler(blocked_update, ChatMemberHandler.MY_CHAT_MEMBER))
     application.add_handler(MessageHandler(private & ~filters.COMMAND, receive_message))
     application.add_handler(MessageHandler(private & filters.COMMAND, receive_message))

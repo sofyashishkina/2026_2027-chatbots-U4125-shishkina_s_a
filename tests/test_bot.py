@@ -386,6 +386,7 @@ class NavigationTests(unittest.IsolatedAsyncioTestCase):
             "catalog": "КАТАЛОГ МАСТЕР-КЛАССОВ", "price": "ПРАЙС YOU ART",
             "events": "АФИША YOU ART", "party": "ПРАЗДНИКИ В YOU ART",
             "signup": "ЗАПИСЬ НА МАСТЕР-КЛАСС", "booking": "УСЛОВИЯ БРОНИРОВАНИЯ",
+            "faq": "ЧАСТЫЕ ВОПРОСЫ",
             "certificates": "ПОДАРОЧНЫЕ СЕРТИФИКАТЫ", "contacts": "КАК НАС НАЙТИ",
         }
         for section, title in sections.items():
@@ -397,17 +398,17 @@ class NavigationTests(unittest.IsolatedAsyncioTestCase):
                 markup = messages[-1].kwargs["reply_markup"]
                 destinations = {button.callback_data for button in self.buttons(markup)}
                 self.assertIn("section:menu", destinations)
-                if section in ("catalog", "price", "events"):
+                if section in ("price", "events"):
                     self.assertGreaterEqual(len(messages), 2)
         self.bot.send_photo.assert_not_awaited()
         self.bot.send_media_group.assert_not_awaited()
 
-    def test_main_menu_has_all_eight_distinct_sections(self):
+    def test_main_menu_has_all_nine_distinct_sections(self):
         buttons = self.buttons(app.keyboard(settings()))
-        self.assertEqual(len(buttons), 8)
+        self.assertEqual(len(buttons), 9)
         self.assertEqual({button.callback_data for button in buttons}, {
             f"section:{section}" for section in (
-                "catalog", "price", "events", "party", "signup", "booking", "certificates", "contacts",
+                "catalog", "price", "events", "party", "signup", "booking", "faq", "certificates", "contacts",
             )
         })
 
@@ -421,7 +422,8 @@ class NavigationTests(unittest.IsolatedAsyncioTestCase):
             "events": {"signup", "menu"},
             "party": {"catalog", "signup", "booking", "menu"},
             "signup": {"catalog", "price", "menu"},
-            "booking": {"signup", "menu"},
+            "booking": {"signup", "faq", "menu"},
+            "faq": {"catalog", "menu"},
             "certificates": {"catalog", "menu"},
             "contacts": {"menu"},
         }
@@ -433,7 +435,7 @@ class NavigationTests(unittest.IsolatedAsyncioTestCase):
                     {f"section:{destination}" for destination in destinations},
                 )
                 self.assertTrue(all(bool(button.url) != bool(button.callback_data) for button in buttons))
-                if section in ("signup", "certificates"):
+                if section in ("signup", "faq", "certificates"):
                     self.assertIn(configured.booking_url, {button.url for button in buttons})
         contact_urls = {button.url for button in self.buttons(app.keyboard(configured, "contacts")) if button.url}
         self.assertEqual(contact_urls, {
@@ -462,6 +464,102 @@ class NavigationTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(app, "show_section", new_callable=AsyncMock) as show:
             await app.section_command(self.update, self.context)
         show.assert_awaited_once_with(self.update, self.context, "catalog")
+
+
+class CatalogTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        quiet_logs = patch.object(app.LOGGER, "disabled", True)
+        quiet_logs.start()
+        self.addCleanup(quiet_logs.stop)
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        assets = patch.object(app, "ASSETS_DIR", Path(self.temporary.name))
+        assets.start()
+        self.addCleanup(assets.stop)
+        self.bot = SimpleNamespace(send_message=AsyncMock(), send_photo=AsyncMock())
+        self.context = SimpleNamespace(bot=self.bot, bot_data={"settings": settings()})
+        self.update = SimpleNamespace(effective_chat=SimpleNamespace(id=42, type="private"))
+
+    def card_photo(self, workshop):
+        path = Path(self.temporary.name) / "catalog" / workshop.photo
+        path.parent.mkdir(exist_ok=True)
+        Image.new("RGB", (20, 25), "white").save(path, "JPEG")
+        return path
+
+    def assert_card_buttons(self, markup):
+        buttons = NavigationTests.buttons(markup)
+        self.assertIn(settings().booking_url, {button.url for button in buttons})
+        self.assertIn("section:catalog", {button.callback_data for button in buttons})
+
+    def test_catalog_lists_every_workshop_once_with_existing_photo(self):
+        buttons = NavigationTests.buttons(app.keyboard(settings(), "catalog"))
+        workshop_callbacks = [button.callback_data for button in buttons
+                              if button.callback_data.startswith("workshop:")]
+        self.assertEqual(workshop_callbacks, [f"workshop:{workshop.slug}" for workshop in app.WORKSHOPS])
+        self.assertEqual(len(set(workshop_callbacks)), len(app.WORKSHOPS))
+        self.assertIn("section:menu", {button.callback_data for button in buttons})
+        # Telegram ограничивает callback_data 64 байтами.
+        self.assertTrue(all(len(callback.encode()) <= 64 for callback in workshop_callbacks))
+        for workshop in app.WORKSHOPS:
+            with self.subTest(workshop=workshop.slug):
+                self.assertTrue((app.BASE_DIR / "assets" / "catalog" / workshop.photo).is_file())
+
+    def test_every_caption_fits_telegram_limit_and_has_key_facts(self):
+        for workshop in app.WORKSHOPS:
+            with self.subTest(workshop=workshop.slug):
+                caption = app.workshop_caption(workshop)
+                self.assertLessEqual(len(caption), 1024)
+                self.assertIn(workshop.duration, caption)
+                self.assertIn(app.GROUP_SIZE, caption)
+                for price in workshop.prices:
+                    self.assertIn(price, caption)
+
+    async def test_card_is_sent_as_photo_with_caption_and_buttons(self):
+        workshop = app.WORKSHOPS_BY_SLUG["painting"]
+        photo = self.card_photo(workshop)
+        await app.show_workshop(self.update, self.context, "painting")
+        kwargs = self.bot.send_photo.await_args.kwargs
+        self.assertEqual(kwargs["photo"], photo.read_bytes())
+        self.assertIn("Живопись на холсте", kwargs["caption"])
+        self.assertIn("холст 30×40 — 2600 ₽", kwargs["caption"])
+        self.assertIn("от 12 лет", kwargs["caption"])
+        self.assert_card_buttons(kwargs["reply_markup"])
+        self.bot.send_message.assert_not_awaited()
+
+    async def test_card_falls_back_to_text_without_photo_or_after_rejection(self):
+        workshop = app.WORKSHOPS_BY_SLUG["soap"]
+        for case in ("missing", "rejected"):
+            with self.subTest(case=case):
+                self.bot.send_message.reset_mock()
+                if case == "rejected":
+                    self.card_photo(workshop)
+                    self.bot.send_photo.side_effect = BadRequest("Wrong file")
+                await app.show_workshop(self.update, self.context, "soap")
+                kwargs = self.bot.send_message.await_args.kwargs
+                self.assertEqual(kwargs["text"], app.workshop_caption(workshop))
+                self.assert_card_buttons(kwargs["reply_markup"])
+
+    async def test_unknown_workshop_offers_main_menu(self):
+        await app.show_workshop(self.update, self.context, "missing")
+        kwargs = self.bot.send_message.await_args.kwargs
+        self.assertEqual(kwargs["text"], app.TEXT["error"])
+        self.assertEqual(kwargs["reply_markup"], app.keyboard(settings()))
+        self.bot.send_photo.assert_not_awaited()
+
+    async def test_workshop_button_opens_its_card_only_in_private_chat(self):
+        query = SimpleNamespace(data="workshop:tiffany", answer=AsyncMock())
+        self.update.callback_query = query
+        with patch.object(app, "show_workshop", new_callable=AsyncMock) as show:
+            await app.workshop_callback(self.update, self.context)
+            show.assert_awaited_once_with(self.update, self.context, "tiffany")
+            self.update.effective_chat.type = "group"
+            await app.workshop_callback(self.update, self.context)
+            show.assert_awaited_once()
+        self.assertEqual(query.answer.await_count, 2)
+
+    def test_bot_description_texts_fit_telegram_limits(self):
+        self.assertLessEqual(len(app.TEXT["description"]), 512)
+        self.assertLessEqual(len(app.TEXT["about"]), 120)
 
 
 class LoggingTests(unittest.TestCase):

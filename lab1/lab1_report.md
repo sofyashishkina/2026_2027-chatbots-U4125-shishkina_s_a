@@ -106,4 +106,4 @@ Successfully installed Pillow-12.3.0 anyio-4.15.1 h11-0.16.0 httpcore-1.0.9 http
 
 2. Запущен бот
 
-Протестированы функции. Видео-демо - файл `Бот демо.mp4`.
+Протестированы функции. Видео-демо доступно по [ссылке](https://youtube.com/shorts/nmVE7td2HoU?feature=share).
