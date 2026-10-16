@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import bot as app
 
 
-def user(telegram_id=42, name="Роман"):
+def user(telegram_id=42, name="Иван"):
     return User(telegram_id, name, False, username=f"user{telegram_id}")
 
 
@@ -446,14 +446,14 @@ class NavigationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_configured_contacts_are_escaped_in_html(self):
         self.context.bot_data["settings"] = replace(
-            settings(), booking_contact="<Роман & Софья>", phone="+7 <913> & 000",
+            settings(), booking_contact="<Иван & Софья>", phone="+7 <913> & 000",
             booking_url='https://t.me/example?x="yes"&y=<tag>',
         )
         await app.show_section(self.update, self.context, "signup")
         text = self.bot.send_message.await_args.kwargs["text"]
-        self.assertIn("&lt;Роман &amp; Софья&gt;", text)
+        self.assertIn("&lt;Иван &amp; Софья&gt;", text)
         self.assertIn('href="https://t.me/example?x=&quot;yes&quot;&amp;y=&lt;tag&gt;"', text)
-        self.assertNotIn("<Роман", text)
+        self.assertNotIn("<Иван", text)
         await app.show_section(self.update, self.context, "contacts")
         self.assertIn("+7 &lt;913&gt; &amp; 000", self.bot.send_message.await_args.kwargs["text"])
 
