@@ -388,6 +388,8 @@ class NavigationTests(unittest.IsolatedAsyncioTestCase):
             "signup": "ЗАПИСЬ НА МАСТЕР-КЛАСС", "booking": "УСЛОВИЯ БРОНИРОВАНИЯ",
             "faq": "ЧАСТЫЕ ВОПРОСЫ",
             "certificates": "ПОДАРОЧНЫЕ СЕРТИФИКАТЫ", "contacts": "КАК НАС НАЙТИ",
+            "classes": "МАСТЕР-КЛАССЫ И ЦЕНЫ", "visit": "ЗАПИСЬ И БРОНИРОВАНИЕ",
+            "gifts": "ПРАЗДНИКИ И ПОДАРКИ",
         }
         for section, title in sections.items():
             with self.subTest(section=section):
@@ -403,14 +405,36 @@ class NavigationTests(unittest.IsolatedAsyncioTestCase):
         self.bot.send_photo.assert_not_awaited()
         self.bot.send_media_group.assert_not_awaited()
 
-    def test_main_menu_has_all_nine_distinct_sections(self):
+    def test_main_menu_has_three_groups_and_contacts(self):
         buttons = self.buttons(app.keyboard(settings()))
-        self.assertEqual(len(buttons), 9)
-        self.assertEqual({button.callback_data for button in buttons}, {
-            f"section:{section}" for section in (
-                "catalog", "price", "events", "party", "signup", "booking", "faq", "certificates", "contacts",
-            )
-        })
+        self.assertEqual([button.callback_data for button in buttons], [
+            "section:classes", "section:visit", "section:gifts", "section:contacts",
+        ])
+
+    def test_every_section_is_reachable_from_exactly_one_menu_place(self):
+        destinations = [button.callback_data for button in self.buttons(app.keyboard(settings()))
+                        if button.callback_data.removeprefix("section:") not in app.GROUPS]
+        for group in app.GROUPS:
+            with self.subTest(group=group):
+                buttons = self.buttons(app.keyboard(settings(), group))
+                self.assertEqual(buttons[-1].callback_data, "section:menu")
+                destinations += [button.callback_data for button in buttons[:-1]]
+        self.assertEqual(sorted(destinations), sorted(
+            f"section:{section}" for section in app.SECTIONS if section != "menu"
+        ))
+
+    async def test_group_buttons_open_groups_and_unknown_buttons_report_error(self):
+        for data, expected in (("section:visit", "visit"), ("section:catalog", "catalog"), ("section:nope", None)):
+            with self.subTest(data=data):
+                self.update.callback_query = SimpleNamespace(data=data, answer=AsyncMock())
+                self.bot.send_message.reset_mock()
+                with patch.object(app, "show_section", new_callable=AsyncMock) as show:
+                    await app.section_callback(self.update, self.context)
+                if expected:
+                    show.assert_awaited_once_with(self.update, self.context, expected)
+                else:
+                    show.assert_not_awaited()
+                    self.assertEqual(self.bot.send_message.await_args.kwargs["text"], app.TEXT["error"])
 
     def test_shortcuts_and_configured_contact_links_have_valid_destinations(self):
         configured = replace(

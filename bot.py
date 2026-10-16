@@ -62,6 +62,15 @@ TEXT = {
 
 Выберите нужный раздел ниже 👇""",
     "menu": "Выберите нужный раздел ниже 👇",
+    "classes": """🎨 МАСТЕР-КЛАССЫ И ЦЕНЫ
+
+Каталог мастер-классов с карточками, прайс и афиша групповых мастер-классов 👇""",
+    "visit": """✍️ ЗАПИСЬ И БРОНИРОВАНИЕ
+
+Как записаться, условия бронирования и ответы на частые вопросы 👇""",
+    "gifts": """🎉 ПРАЗДНИКИ И ПОДАРКИ
+
+Праздники в мастерской и подарочные сертификаты 👇""",
     "catalog": """🎨 КАТАЛОГ МАСТЕР-КЛАССОВ
 
 В You Art более 20 творческих направлений.
@@ -225,6 +234,9 @@ TEXT = {
 
 LABELS = {
     "menu": "⬅️ Главное меню",
+    "classes": "🎨 Мастер-классы и цены",
+    "visit": "✍️ Запись и бронирование",
+    "gifts": "🎉 Праздники и подарки",
     "catalog": "🎨 Каталог мастер-классов",
     "price": "💰 Прайс",
     "events": "📅 Афиша",
@@ -261,6 +273,12 @@ COMMANDS = [
     BotCommand("id", "Мой Telegram ID"),
 ]
 SECTIONS = ("menu", "catalog", "price", "events", "party", "booking", "faq", "signup", "certificates", "contacts")
+# Группы главного меню открываются кнопками; команды по-прежнему ведут прямо в разделы.
+GROUPS = {
+    "classes": ("catalog", "price", "events"),
+    "visit": ("signup", "booking", "faq"),
+    "gifts": ("party", "certificates"),
+}
 
 
 @dataclass(frozen=True)
@@ -465,11 +483,11 @@ def section_button(section: str, label: str | None = None) -> InlineKeyboardButt
 
 def keyboard(settings: Settings, section: str = "menu") -> InlineKeyboardMarkup:
     if section == "menu":
-        return InlineKeyboardMarkup([[section_button(name)] for name in (
-            "catalog", "price", "events", "party", "signup", "booking", "faq", "certificates", "contacts"
-        )])
+        return InlineKeyboardMarkup([[section_button(name)] for name in (*GROUPS, "contacts")])
     rows = []
-    if section == "catalog":
+    if section in GROUPS:
+        rows = [[section_button(name)] for name in GROUPS[section]]
+    elif section == "catalog":
         # Короткие подписи помещаются по две в ряд даже на узком экране.
         buttons = [InlineKeyboardButton(workshop.label, callback_data=f"workshop:{workshop.slug}")
                    for workshop in WORKSHOPS]
@@ -608,8 +626,8 @@ async def send_text(context, chat_id: int, text: str, section: str | None = None
 async def show_section(update: Update, context: ContextTypes.DEFAULT_TYPE, section: str) -> None:
     chat_id = update.effective_chat.id
     settings = context.bot_data["settings"]
-    if section == "menu":
-        await send_text(context, chat_id, TEXT["menu"], "menu")
+    if section == "menu" or section in GROUPS:
+        await send_text(context, chat_id, TEXT[section], section)
     elif section == "catalog":
         # Только список названий: карточка приходит после выбора мастер-класса.
         await send_text(context, chat_id, TEXT["catalog"], "catalog")
@@ -668,7 +686,7 @@ async def section_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     if update.effective_chat.type != ChatType.PRIVATE:
         return
     section = query.data.partition(":")[2]
-    if section not in SECTIONS:
+    if section not in SECTIONS and section not in GROUPS:
         await send_text(context, update.effective_chat.id, TEXT["error"], "menu")
         return
     await show_section(update, context, section)
